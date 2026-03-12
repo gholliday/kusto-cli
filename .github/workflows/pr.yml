@@ -76,6 +76,8 @@ jobs:
         include:
           - runner: windows-latest
             rid: win-x64
+          - runner: windows-latest
+            rid: win-arm64
           - runner: ubuntu-22.04
             rid: linux-x64
           - runner: macos-latest
