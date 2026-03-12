@@ -119,3 +119,10 @@ jobs:
         shell: bash
         run: dotnet publish ./src/Kusto.Cli/ -r '${{ matrix.rid }}'
 
+      - name: Upload Native AOT artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-pr-${{ matrix.rid }}
+          path: ./src/Kusto.Cli/bin/Release/net10.0/${{ matrix.rid }}/publish/*
+          retention-days: 14
+
