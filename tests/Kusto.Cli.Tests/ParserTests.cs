@@ -20,6 +20,14 @@ public sealed class ParserTests
         Assert.NotEmpty(result.Errors);
     }
 
+    [Fact]
+    public void Parse_AllowsTimeoutOption()
+    {
+        var rootCommand = CommandFactory.CreateRootCommand();
+        var result = rootCommand.Parse(["cluster", "list", "--timeout", "5"], new ParserConfiguration());
+        Assert.Empty(result.Errors);
+    }
+
     [Theory]
     [InlineData("trace")]
     [InlineData("Warning")]

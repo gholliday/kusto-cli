@@ -59,12 +59,25 @@ The CLI stores configuration at:
 
 - Default: `%USERPROFILE%\.kusto\config.json`
 - Override with environment variable: `KUSTO_CONFIG_PATH`
+- Timeout override environment variable: `KUSTO_TIMEOUT_MINUTES`
 
 Example (PowerShell):
 
 ```powershell
 $env:KUSTO_CONFIG_PATH = "C:\temp\kusto\config.json"
 ```
+
+You can also set a default request timeout in the config file:
+
+```json
+{
+  "requestTimeoutMinutes": 10
+}
+```
+
+Timeout precedence is: `--timeout` > `KUSTO_TIMEOUT_MINUTES` > `requestTimeoutMinutes` > `5`.
+
+Outbound connections enable TCP keepalive with a 60-second idle delay, a 30-second probe interval, and 5 retries.
 
 ## Schema cache
 
@@ -78,6 +91,7 @@ These options are available on all commands:
 |---|---|---|---|
 | `--format` | `human`, `json`, `markdown`, `md` | `human` | Output format. |
 | `--log-level` | `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None` | not set | Enables console logging at the selected level (logs are always written to file). |
+| `--timeout` | positive whole number of minutes | `5` | Request timeout. Overrides `KUSTO_TIMEOUT_MINUTES` and `requestTimeoutMinutes`. |
 | `-h`, `--help` | n/a | n/a | Show help. |
 | `--version` | n/a | n/a | Show version. |
 

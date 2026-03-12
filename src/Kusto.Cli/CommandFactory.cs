@@ -20,29 +20,34 @@ public static class CommandFactory
             Recursive = true
         };
 
+        var timeoutOption = new Option<int?>("--timeout")
+        {
+            Description = "Request timeout in whole minutes.",
+            Recursive = true
+        };
+
         var root = new RootCommand("Query Azure Data Explorer (Kusto) from the terminal: save clusters, pick defaults, inspect databases and tables, and run KQL.")
         {
             formatOption,
             logLevelOption,
-            BuildExamplesCommand(formatOption, logLevelOption),
-            BuildClusterCommand(formatOption, logLevelOption),
-            BuildDatabaseCommand(formatOption, logLevelOption),
-            BuildTableCommand(formatOption, logLevelOption),
-            BuildQueryCommand(formatOption, logLevelOption)
+            timeoutOption,
+            BuildExamplesCommand(formatOption, logLevelOption, timeoutOption),
+            BuildClusterCommand(formatOption, logLevelOption, timeoutOption),
+            BuildDatabaseCommand(formatOption, logLevelOption, timeoutOption),
+            BuildTableCommand(formatOption, logLevelOption, timeoutOption),
+            BuildQueryCommand(formatOption, logLevelOption, timeoutOption)
         };
         return root;
     }
 
-    private static Command BuildExamplesCommand(Option<string> formatOption, Option<string?> logLevelOption)
+    private static Command BuildExamplesCommand(Option<string> formatOption, Option<string?> logLevelOption, Option<int?> timeoutOption)
     {
         var examplesCommand = new Command("examples", "Show usage examples, aliases, and quick-start commands.");
         examplesCommand.Aliases.Add("example");
         examplesCommand.Aliases.Add("aliases");
         examplesCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
-            return CliRunner.RunAsync(format, logLevel, static (_, _) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, static (_, _) =>
                 Task.FromResult(new CliOutput
                 {
                                         Table = new TabularData(
@@ -62,7 +67,7 @@ public static class CommandFactory
         return examplesCommand;
     }
 
-    private static Command BuildClusterCommand(Option<string> formatOption, Option<string?> logLevelOption)
+    private static Command BuildClusterCommand(Option<string> formatOption, Option<string?> logLevelOption, Option<int?> timeoutOption)
     {
         var clusterCommand = new Command("cluster", "Manage saved clusters and the active cluster.");
         clusterCommand.Aliases.Add("clusters");
@@ -71,9 +76,7 @@ public static class CommandFactory
         listCommand.Aliases.Add("ls");
         listCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 if (config.Clusters.Count == 0)
@@ -116,10 +119,8 @@ public static class CommandFactory
         showCommand.Aliases.Add("get");
         showCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
             var clusterReference = parseResult.GetRequiredValue(clusterReferenceArgument);
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var cluster = ClusterUtilities.FindKnownCluster(config, clusterReference) ??
@@ -149,13 +150,11 @@ public static class CommandFactory
         addCommand.Add(useOption);
         addCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
             var name = parseResult.GetRequiredValue(clusterNameArgument);
             var url = parseResult.GetRequiredValue(clusterUrlArgument);
             var setAsDefault = parseResult.GetValue(useOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var normalizedUrl = ClusterUtilities.NormalizeClusterUrl(url);
@@ -196,11 +195,9 @@ public static class CommandFactory
         removeCommand.Aliases.Add("delete");
         removeCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
             var clusterReference = parseResult.GetRequiredValue(clusterReferenceArgument);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var cluster = ClusterUtilities.FindKnownCluster(config, clusterReference) ??
@@ -226,11 +223,9 @@ public static class CommandFactory
         setDefaultCommand.Aliases.Add("use");
         setDefaultCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
             var clusterReference = parseResult.GetRequiredValue(clusterReferenceArgument);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var cluster = ClusterUtilities.FindKnownCluster(config, clusterReference) ??
@@ -250,7 +245,7 @@ public static class CommandFactory
         return clusterCommand;
     }
 
-    private static Command BuildDatabaseCommand(Option<string> formatOption, Option<string?> logLevelOption)
+    private static Command BuildDatabaseCommand(Option<string> formatOption, Option<string?> logLevelOption, Option<int?> timeoutOption)
     {
         var clusterOption = CreateClusterOption();
         var filterOption = CreateFilterOption("database");
@@ -272,10 +267,8 @@ public static class CommandFactory
             var clusterReference = parseResult.GetValue(clusterOption);
             var filterValue = parseResult.GetValue(filterOption);
             var takeValue = parseResult.GetValue(takeOption);
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var resolvedCluster = runtime.ConnectionResolver.ResolveCluster(config, clusterReference);
@@ -319,10 +312,8 @@ public static class CommandFactory
         {
             var databaseName = parseResult.GetRequiredValue(databaseArgument);
             var clusterReference = parseResult.GetValue(clusterOption);
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var resolvedCluster = runtime.ConnectionResolver.ResolveCluster(config, clusterReference);
@@ -351,10 +342,8 @@ public static class CommandFactory
         {
             var databaseName = parseResult.GetRequiredValue(databaseArgument);
             var clusterReference = parseResult.GetValue(clusterOption);
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var resolvedCluster = runtime.ConnectionResolver.ResolveCluster(config, clusterReference);
@@ -381,7 +370,7 @@ public static class CommandFactory
         return databaseCommand;
     }
 
-    private static Command BuildTableCommand(Option<string> formatOption, Option<string?> logLevelOption)
+    private static Command BuildTableCommand(Option<string> formatOption, Option<string?> logLevelOption, Option<int?> timeoutOption)
     {
         var clusterOption = CreateClusterOption();
 
@@ -406,10 +395,8 @@ public static class CommandFactory
             var databaseName = parseResult.GetValue(databaseOption);
             var filterValue = parseResult.GetValue(filterOption);
             var takeValue = parseResult.GetValue(takeOption);
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var resolvedCluster = runtime.ConnectionResolver.ResolveCluster(config, clusterReference);
@@ -449,10 +436,8 @@ public static class CommandFactory
             var tableName = parseResult.GetRequiredValue(tableArgument);
             var clusterReference = parseResult.GetValue(clusterOption);
             var databaseName = parseResult.GetValue(databaseOption);
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var resolvedCluster = runtime.ConnectionResolver.ResolveCluster(config, clusterReference);
@@ -475,7 +460,7 @@ public static class CommandFactory
         return tableCommand;
     }
 
-    private static Command BuildQueryCommand(Option<string> formatOption, Option<string?> logLevelOption)
+    private static Command BuildQueryCommand(Option<string> formatOption, Option<string?> logLevelOption, Option<int?> timeoutOption)
     {
         var queryCommand = new Command("query", "Run KQL from inline text, --file/-f, or stdin against the selected cluster and database.");
         queryCommand.Aliases.Add("run");
@@ -509,10 +494,8 @@ public static class CommandFactory
             var clusterReference = parseResult.GetValue(clusterOption);
             var databaseName = parseResult.GetValue(databaseOption);
             var showStats = parseResult.GetValue(showStatsOption);
-            var format = parseResult.GetRequiredValue(formatOption);
-            var logLevel = parseResult.GetValue(logLevelOption);
 
-            return CliRunner.RunAsync(format, logLevel, async (runtime, ct) =>
+            return RunCommand(parseResult, formatOption, logLevelOption, timeoutOption, async (runtime, ct) =>
             {
                 var config = await runtime.ConfigStore.LoadAsync(ct);
                 var resolvedCluster = runtime.ConnectionResolver.ResolveCluster(config, clusterReference);
@@ -588,6 +571,20 @@ public static class CommandFactory
         };
         option.Aliases.Add("-f");
         return option;
+    }
+
+    private static Task<int> RunCommand(
+        ParseResult parseResult,
+        Option<string> formatOption,
+        Option<string?> logLevelOption,
+        Option<int?> timeoutOption,
+        Func<CliRuntime, CancellationToken, Task<CliOutput>> commandAction,
+        CancellationToken cancellationToken)
+    {
+        var format = parseResult.GetRequiredValue(formatOption);
+        var logLevel = parseResult.GetValue(logLevelOption);
+        var timeoutMinutes = parseResult.GetValue(timeoutOption);
+        return CliRunner.RunAsync(format, logLevel, timeoutMinutes, commandAction, cancellationToken);
     }
 
     private static int GetPreferredColumnIndex(TabularData table, string preferredColumnName)
