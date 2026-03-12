@@ -127,6 +127,7 @@ public sealed class KustoConfig
     public List<KnownCluster> Clusters { get; set; } = [];
     public string? DefaultClusterUrl { get; set; }
     public Dictionary<string, string> DefaultDatabases { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public int? RequestTimeoutMinutes { get; set; }
     public SchemaCacheConfig SchemaCache { get; set; } = new();
 }
 

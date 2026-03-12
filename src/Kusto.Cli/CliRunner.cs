@@ -1,12 +1,18 @@
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 
 namespace Kusto.Cli;
 
 public static class CliRunner
 {
+    internal const int DefaultRequestTimeoutMinutes = 5;
+    internal const string TimeoutEnvironmentVariableName = "KUSTO_TIMEOUT_MINUTES";
+    internal const string TimeoutConfigPropertyName = "requestTimeoutMinutes";
+
     public static async Task<int> RunAsync(
         string formatToken,
         string? logLevelToken,
+        int? timeoutMinutes,
         Func<CliRuntime, CancellationToken, Task<CliOutput>> commandAction,
         CancellationToken cancellationToken)
     {
@@ -28,6 +34,9 @@ public static class CliRunner
 
         try
         {
+            var config = await runtime.ConfigStore.LoadAsync(cancellationToken);
+            runtime.HttpClient.Timeout = ResolveRequestTimeout(timeoutMinutes, config);
+
             var output = await commandAction(runtime, cancellationToken);
             var renderedOutput = runtime.OutputFormatter.Format(output, format);
             if (!string.IsNullOrWhiteSpace(renderedOutput))
@@ -73,6 +82,31 @@ public static class CliRunner
             $"'{logLevelToken}' is not a valid log level. Use Trace, Debug, Information, Warning, Error, Critical, or None.");
     }
 
+    internal static TimeSpan ResolveRequestTimeout(int? timeoutMinutes, KustoConfig config)
+    {
+        return ResolveRequestTimeout(timeoutMinutes, config, Environment.GetEnvironmentVariable(TimeoutEnvironmentVariableName));
+    }
+
+    internal static TimeSpan ResolveRequestTimeout(int? timeoutMinutes, KustoConfig config, string? environmentTimeoutValue)
+    {
+        if (timeoutMinutes is int optionMinutes)
+        {
+            return TimeSpan.FromMinutes(ValidateTimeoutMinutes(optionMinutes, "The --timeout option"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(environmentTimeoutValue))
+        {
+            return TimeSpan.FromMinutes(ParseTimeoutMinutes(environmentTimeoutValue, $"Environment variable '{TimeoutEnvironmentVariableName}'"));
+        }
+
+        if (config.RequestTimeoutMinutes is int configuredMinutes)
+        {
+            return TimeSpan.FromMinutes(ValidateTimeoutMinutes(configuredMinutes, $"Config property '{TimeoutConfigPropertyName}'"));
+        }
+
+        return TimeSpan.FromMinutes(DefaultRequestTimeoutMinutes);
+    }
+
     public static CliRuntime CreateRuntime(LogLevel? requestedLogLevel, string? configPath = null, TextWriter? stderrWriter = null, string? logFilePath = null)
     {
         var loggerFactory = LoggingFactoryBuilder.Create(requestedLogLevel, logFilePath, stderrWriter);
@@ -80,7 +114,7 @@ public static class CliRunner
         var configStore = new FileConfigStore(configPath);
         var connectionResolver = new KustoConnectionResolver();
         var tokenProvider = new AzureTokenProvider();
-        var httpClient = new HttpClient();
+        var httpClient = KustoHttpClientFactory.Create();
         var kustoService = new KustoHttpService(httpClient, tokenProvider, loggerFactory.CreateLogger<KustoHttpService>());
         var tableSchemaProvider = new TableSchemaProvider(
             kustoService,
@@ -97,5 +131,25 @@ public static class CliRunner
             kustoService,
             tableSchemaProvider,
             formatter);
+    }
+
+    private static int ParseTimeoutMinutes(string value, string sourceDescription)
+    {
+        if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedMinutes))
+        {
+            throw new UserFacingException($"{sourceDescription} must be a positive whole number of minutes.");
+        }
+
+        return ValidateTimeoutMinutes(parsedMinutes, sourceDescription);
+    }
+
+    private static int ValidateTimeoutMinutes(int timeoutMinutes, string sourceDescription)
+    {
+        if (timeoutMinutes <= 0)
+        {
+            throw new UserFacingException($"{sourceDescription} must be a positive whole number of minutes.");
+        }
+
+        return timeoutMinutes;
     }
 }
