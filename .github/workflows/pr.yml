@@ -112,17 +112,17 @@ jobs:
       - name: Run dotnet publish (windows)
         if: matrix.rid == 'win-x64' || matrix.rid == 'win-arm64'
         shell: pwsh
-        run: dotnet publish .\src\Kusto.Cli\ -r '${{ matrix.rid }}'
+        run: dotnet publish .\src\Kusto.Cli\ -r '${{ matrix.rid }}' -o '.\artifacts\pr\${{ matrix.rid }}'
       
       - name: Run dotnet publish (non-windows)
         if: matrix.rid != 'win-x64' && matrix.rid != 'win-arm64'
         shell: bash
-        run: dotnet publish ./src/Kusto.Cli/ -r '${{ matrix.rid }}'
+        run: dotnet publish ./src/Kusto.Cli/ -r '${{ matrix.rid }}' -o './artifacts/pr/${{ matrix.rid }}'
 
       - name: Upload Native AOT artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: native-pr-${{ matrix.rid }}
-          path: ./src/Kusto.Cli/bin/Release/net10.0/${{ matrix.rid }}/publish/*
+          path: ./artifacts/pr/${{ matrix.rid }}/*
           retention-days: 14
 
