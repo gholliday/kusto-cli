@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Damian Edwards",
+  "classifications": ["MCP", "CLI", "Tool"],
+  "identity": "DamianEdwards.McpTool",
+  "name": "MCP Tool (CLI + MCP server)",
+  "shortName": "mcp-tool",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "McpToolName",
+  "preferNameDirectory": true,
+  "symbols": {
+    "toolPrefix": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Dot-separated tool name prefix for MCP tools (e.g. 'cosmos', 'servicebus')",
+      "replaces": "tooltoolprefix",
+      "defaultValue": "mytool"
+    },
+    "serverName": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "MCP server display name and executable name (e.g. 'cosmos-mcp')",
+      "replaces": "toolservername",
+      "defaultValue": "mytool-mcp"
+    },
+    "description": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Short description for the MCP server",
+      "replaces": "toolserverdescription",
+      "defaultValue": "A local MCP server."
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/artifacts/**"
+          ]
+        }
+      ]
+    }
+  ]
+}
