@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Kusto.Cli/Kusto.Cli.csproj" />
+    <Project Path="src/Kusto.Cli.Mcp/Kusto.Cli.Mcp.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Kusto.Cli.Tests/Kusto.Cli.Tests.csproj" />

@@ -253,7 +253,7 @@ public static class CommandFactory
                     ct);
 
                 var rows = new List<IReadOnlyList<string?>>();
-                var nameColumnIndex = GetPreferredColumnIndex(databases, "DatabaseName");
+                var nameColumnIndex = TabularDataUtilities.GetPreferredColumnIndex(databases, "DatabaseName");
                 config.DefaultDatabases.TryGetValue(resolvedCluster.Url, out var defaultDatabase);
                 foreach (var row in databases.Rows)
                 {
@@ -299,7 +299,7 @@ public static class CommandFactory
 
                 return new CliOutput
                 {
-                    Properties = ConvertRowToProperties(result, 0)
+                        Properties = TabularDataUtilities.ConvertRowToProperties(result, 0)
                 };
             }, cancellationToken);
         });
@@ -443,7 +443,7 @@ public static class CommandFactory
 
                 return new CliOutput
                 {
-                    Properties = ConvertRowToProperties(result, 0)
+                        Properties = TabularDataUtilities.ConvertRowToProperties(result, 0)
                 };
             }, cancellationToken);
         });
@@ -526,34 +526,6 @@ public static class CommandFactory
         });
 
         return queryCommand;
-    }
-
-    private static int GetPreferredColumnIndex(TabularData table, string preferredColumnName)
-    {
-        if (table.TryGetColumnIndex(preferredColumnName, out var index))
-        {
-            return index;
-        }
-
-        return table.Columns.Count > 0 ? 0 : -1;
-    }
-
-    private static Dictionary<string, string?> ConvertRowToProperties(TabularData table, int rowIndex)
-    {
-        var properties = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-        if (rowIndex >= table.Rows.Count)
-        {
-            return properties;
-        }
-
-        var row = table.Rows[rowIndex];
-        for (var i = 0; i < table.Columns.Count; i++)
-        {
-            var value = i < row.Count ? row[i] : null;
-            properties[table.Columns[i]] = value;
-        }
-
-        return properties;
     }
 
     private static string EscapeKustoLiteral(string input)

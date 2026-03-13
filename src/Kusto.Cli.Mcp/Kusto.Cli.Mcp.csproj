@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>kusto-mcp</AssemblyName>
+    <RootNamespace>Kusto.Cli.Mcp</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <Company>Damian Edwards</Company>
+    <Product>Kusto MCP Server</Product>
+    <Copyright>Copyright © 2026 Damian Edwards</Copyright>
+    <Authors>Damian Edwards</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kusto.Cli\Kusto.Cli.csproj" />
+  </ItemGroup>
+
+</Project>

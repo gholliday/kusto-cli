@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Kusto.Cli;
 
-internal static class ListQueryBuilder
+public static class ListQueryBuilder
 {
     public static BuiltListQuery Build(string baseCommand, string nameColumn, string? filterValue, int? takeValue)
     {
@@ -101,4 +101,4 @@ internal static class ListQueryBuilder
     }
 }
 
-internal sealed record BuiltListQuery(string Command, IReadOnlyDictionary<string, string> Parameters);
+public sealed record BuiltListQuery(string Command, IReadOnlyDictionary<string, string> Parameters);

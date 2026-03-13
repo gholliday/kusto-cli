@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kusto.Cli\Kusto.Cli.csproj" />
+    <ProjectReference Include="..\..\src\Kusto.Cli.Mcp\Kusto.Cli.Mcp.csproj" />
   </ItemGroup>
 
 </Project>

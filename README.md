@@ -11,6 +11,7 @@ A native command-line tool for Azure Data Explorer (Kusto), focused on quick exp
 - Show optional query execution statistics with `--show-stats`
 - Multiple output formats (`human`, `json`, `markdown`/`md`)
 - Configurable log verbosity with structured console/file logging
+- A minimal local MCP server over STDIO via the separate `kusto-mcp` executable
 
 ## Authentication
 
@@ -46,6 +47,109 @@ Example (PowerShell):
 ```powershell
 $env:KUSTO_CONFIG_PATH = "C:\temp\kusto\config.json"
 ```
+
+The MCP wrapper uses the same configuration file and authentication flow as the CLI.
+
+## MCP server
+
+This repository also includes a minimal STDIO-based MCP server in `src/Kusto.Cli.Mcp`.
+
+Use the launcher script during development:
+
+```powershell
+.\kusto-mcp.cmd
+```
+
+Or run it directly with `dotnet`:
+
+```powershell
+dotnet run --project .\src\Kusto.Cli.Mcp\
+```
+
+Because it uses STDIO transport, it is suitable for MCP clients that launch a local process, including VS Code and other local MCP hosts.
+
+### Setting up MCP clients
+
+Run `kusto-mcp setup` to print ready-to-paste configuration snippets for each supported client:
+
+```powershell
+kusto-mcp setup
+```
+
+Or run `kusto-mcp install` to automatically add the server to `~/.copilot/mcp-config.json`:
+
+```powershell
+kusto-mcp install
+```
+
+#### GitHub Copilot CLI (`~/.copilot/mcp-config.json`)
+
+```json
+{
+  "mcpServers": {
+    "kusto-mcp": {
+      "type": "local",
+      "command": "kusto-mcp",
+      "args": [],
+      "tools": ["*"]
+    }
+  }
+}
+```
+
+#### VS Code (`.vscode/mcp.json`)
+
+```json
+{
+  "servers": {
+    "kusto-mcp": {
+      "command": "kusto-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+#### Claude Desktop (`%APPDATA%/Claude/claude_desktop_config.json`)
+
+```json
+{
+  "mcpServers": {
+    "kusto-mcp": {
+      "command": "kusto-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+#### Visual Studio (`.mcp.json` at solution root)
+
+```json
+{
+  "mcpServers": {
+    "kusto-mcp": {
+      "type": "stdio",
+      "command": "kusto-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+> If the `kusto-mcp` binary is not on your `PATH`, replace the command with an absolute path or use `dotnet run --project <path-to-Kusto.Cli.Mcp>`.
+
+### Exposed MCP tools
+
+- `kusto.query`
+- `kusto.command`
+- `kusto.cluster.list`
+- `kusto.cluster.get`
+- `kusto.database.list`
+- `kusto.table.list`
+- `kusto.table.schema`
+
+The tool names intentionally align with the hierarchical naming used by `Azure.Mcp.Tools.Kusto`, while keeping the behavior of this repo's local-config-driven CLI.
 
 ## Global options
 
@@ -202,18 +306,21 @@ Windows:
 
 ```powershell
 dotnet publish .\src\Kusto.Cli\ --os win [--arch <arch>]
+dotnet publish .\src\Kusto.Cli.Mcp\ --os win [--arch <arch>]
 ```
 
 macOS:
 
 ```bash
 dotnet publish ./src/Kusto.Cli/ --os osx [--arch <arch>]
+dotnet publish ./src/Kusto.Cli.Mcp/ --os osx [--arch <arch>]
 ```
 
 Linux:
 
 ```bash
 dotnet publish ./src/Kusto.Cli/ --os linux [--arch <arch>]
+dotnet publish ./src/Kusto.Cli.Mcp/ --os linux [--arch <arch>]
 ```
 
 `<arch>` can be `x64` or `arm64`. If omitted, the current machine's architecture is used.
