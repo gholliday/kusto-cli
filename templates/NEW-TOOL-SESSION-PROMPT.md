@@ -28,7 +28,7 @@ I need to create a new CLI tool with MCP server support, following the exact pat
 3. **MCP project** (`src/{Name}.Mcp/{Name}.Mcp.csproj`): The MCP server wrapper
    - Uses `ModelContextProtocol` NuGet (v1.1.0) + `Microsoft.Extensions.Hosting`
    - `[McpServerToolType]` class with `[McpServerTool]` attributed methods
-   - Tool names: hierarchical dot notation (`{prefix}.query`, `{prefix}.list`, etc.)
+   - Tool names: underscore-separated (`{prefix}_query`, `{prefix}_list`, etc.) — dots are NOT allowed by some MCP clients
    - Set `ReadOnly`, `Destructive`, `Idempotent`, `OpenWorld` annotations on each tool
    - Parameter descriptions via `[Description]` attributes — these are the LLM's docs
    - Convert `UserFacingException` → `McpException` so MCP clients see clean errors

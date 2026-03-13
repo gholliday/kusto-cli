@@ -7,7 +7,7 @@ namespace McpToolName.Mcp;
 public sealed class Tools
 {
     // Example read-only tool
-    [McpServerTool(Name = "tooltoolprefix.hello", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "tooltoolprefix_hello", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("Say hello. Replace this with your first real tool.")]
     public static string Hello(
         [Description("Name to greet.")] string name)
@@ -16,7 +16,7 @@ public sealed class Tools
     }
 
     // Example async tool with DI — uncomment and adapt when you have services
-    // [McpServerTool(Name = "tooltoolprefix.query", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    // [McpServerTool(Name = "tooltoolprefix_query", ReadOnly = true, Idempotent = true, OpenWorld = false),
     //  Description("Execute a query.")]
     // public async Task<string> QueryAsync(
     //     IMyService myService,

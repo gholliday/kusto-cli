@@ -10,7 +10,7 @@ public sealed class KustoTools(CliRuntime runtime)
 {
     private readonly CliRuntime _runtime = runtime;
 
-    [McpServerTool(Name = "kusto.query", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_query", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("Execute a KQL query against the selected cluster and database.")]
     public async Task<string> QueryAsync(
         [Description("The KQL query text to execute.")] string query,
@@ -36,7 +36,7 @@ public sealed class KustoTools(CliRuntime runtime)
         });
     }
 
-    [McpServerTool(Name = "kusto.command", Destructive = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_command", Destructive = true, OpenWorld = false),
      Description("Execute a Kusto management command against the selected cluster and database.")]
     public async Task<string> CommandAsync(
         [Description("The Kusto management command to execute.")] string command,
@@ -58,7 +58,7 @@ public sealed class KustoTools(CliRuntime runtime)
         });
     }
 
-    [McpServerTool(Name = "kusto.cluster.list", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_cluster_list", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("List locally configured Kusto clusters and defaults.")]
     public async Task<string> ClusterListAsync(CancellationToken cancellationToken = default)
     {
@@ -87,7 +87,7 @@ public sealed class KustoTools(CliRuntime runtime)
         });
     }
 
-    [McpServerTool(Name = "kusto.cluster.get", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_cluster_get", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("Show details for one locally configured Kusto cluster.")]
     public async Task<string> ClusterGetAsync(
         [Description("Cluster name or URL.")] string cluster,
@@ -114,7 +114,7 @@ public sealed class KustoTools(CliRuntime runtime)
         });
     }
 
-    [McpServerTool(Name = "kusto.database.list", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_database_list", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("List databases in the selected cluster, with optional name filtering and row limiting.")]
     public async Task<string> DatabaseListAsync(
         [Description("Cluster name or URL. If omitted, the default cluster is used.")] string? cluster = null,
@@ -143,7 +143,7 @@ public sealed class KustoTools(CliRuntime runtime)
         });
     }
 
-    [McpServerTool(Name = "kusto.table.list", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_table_list", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("List tables in the selected database, with optional name filtering and row limiting.")]
     public async Task<string> TableListAsync(
         [Description("Cluster name or URL. If omitted, the default cluster is used.")] string? cluster = null,
@@ -165,7 +165,7 @@ public sealed class KustoTools(CliRuntime runtime)
         });
     }
 
-    [McpServerTool(Name = "kusto.table.schema", ReadOnly = true, Idempotent = true, OpenWorld = false),
+    [McpServerTool(Name = "kusto_table_schema", ReadOnly = true, Idempotent = true, OpenWorld = false),
      Description("Show schema details for one table in the selected database.")]
     public async Task<string> TableSchemaAsync(
         [Description("Table name.")] string table,
