@@ -32,7 +32,7 @@ builder.Logging.AddConsole(options =>
 });
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
 
-builder.Services.AddSingleton(CliRunner.CreateRuntime(requestedLogLevel: null));
+builder.Services.AddSingleton(_ => CliRunner.CreateRuntime(requestedLogLevel: null));
 builder.Services
     .AddMcpServer(options =>
     {
